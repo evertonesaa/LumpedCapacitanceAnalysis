@@ -42,9 +42,9 @@ O método da capacitância agrupada é uma abordagem simplificada para análise 
 
         Pontos experimentais (tempo e temperatura)
 
-    📊 Saída do Programa
+ 📊 Saída do Programa
 
-    O programa fornecerá:
+ O programa fornecerá:
 
         Uma tabela comparando temperaturas experimentais e do modelo
 
