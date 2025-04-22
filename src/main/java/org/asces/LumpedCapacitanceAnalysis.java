@@ -1,13 +1,17 @@
 package org.asces;
 
 import java.util.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class LumpedCapacitanceAnalysis {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
-        // Dados experimentais
+        // Entrada de dados
         System.out.print("Informe a temperatura ambiente (T_inf) em °C: ");
         double T_inf = sc.nextDouble();
 
@@ -42,22 +46,18 @@ public class LumpedCapacitanceAnalysis {
             T_exp[i] = sc.nextDouble();
         }
 
-        // Massa
+        // Massa e constante de tempo
         double m = rho * V;
-
-        // Constante térmica
         double tau = (m * c) / (h * A);
 
-        // Cálculo do modelo lumped (teórico)
+        // Cálculo teórico
         double[] T_teo = new double[n];
         for (int i = 0; i < n; i++) {
             T_teo[i] = T_inf + (T_i - T_inf) * Math.exp(-t[i] / tau);
         }
 
-        // Cálculo do RMSE e R²
-        double rmse = 0;
-        double ss_tot = 0;
-        double ss_res = 0;
+        // RMSE e R²
+        double rmse = 0, ss_tot = 0, ss_res = 0;
         double media_exp = Arrays.stream(T_exp).average().getAsDouble();
 
         for (int i = 0; i < n; i++) {
@@ -69,7 +69,7 @@ public class LumpedCapacitanceAnalysis {
         rmse = Math.sqrt(rmse / n);
         double r2 = 1 - (ss_res / ss_tot);
 
-        // Resultados
+        // Saída no console
         System.out.println("\nResultados:");
         System.out.println("Tempo (s)\tT_Exp (°C)\tT_Modelo (°C)");
         for (int i = 0; i < n; i++) {
@@ -78,6 +78,21 @@ public class LumpedCapacitanceAnalysis {
 
         System.out.printf("\nRMSE: %.4f °C%n", rmse);
         System.out.printf("Coeficiente de Determinação (R²): %.4f%n", r2);
+
+        // Geração de nome de arquivo com base na data
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+        String fileName = "saida_" + LocalDateTime.now().format(formatter) + ".csv";
+
+        // Exporta apenas os dados para CSV
+        try (FileWriter writer = new FileWriter(fileName)) {
+            writer.write("Tempo (s),Temperatura Experimental (°C),Temperatura Modelo (°C)\n");
+            for (int i = 0; i < n; i++) {
+                writer.write(String.format("%.2f,%.2f,%.2f\n", t[i], T_exp[i], T_teo[i]));
+            }
+            System.out.println("\nArquivo '" + fileName + "' salvo com sucesso!");
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar o arquivo CSV: " + e.getMessage());
+        }
 
         sc.close();
     }
