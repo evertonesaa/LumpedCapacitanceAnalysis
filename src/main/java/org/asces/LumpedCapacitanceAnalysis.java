@@ -3,15 +3,14 @@ package org.asces;
 import java.util.*;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 
 public class LumpedCapacitanceAnalysis {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
-        // Entrada de dados
+        // Entrada de dados (mantido igual)
         System.out.print("Informe a temperatura ambiente (T_inf) em °C: ");
         double T_inf = sc.nextDouble();
 
@@ -46,17 +45,16 @@ public class LumpedCapacitanceAnalysis {
             T_exp[i] = sc.nextDouble();
         }
 
-        // Massa e constante de tempo
+        // Cálculos (mantido igual)
         double m = rho * V;
         double tau = (m * c) / (h * A);
 
-        // Cálculo teórico
         double[] T_teo = new double[n];
         for (int i = 0; i < n; i++) {
             T_teo[i] = T_inf + (T_i - T_inf) * Math.exp(-t[i] / tau);
         }
 
-        // RMSE e R²
+        // Cálculo das métricas
         double rmse = 0, ss_tot = 0, ss_res = 0;
         double media_exp = Arrays.stream(T_exp).average().getAsDouble();
 
@@ -69,7 +67,7 @@ public class LumpedCapacitanceAnalysis {
         rmse = Math.sqrt(rmse / n);
         double r2 = 1 - (ss_res / ss_tot);
 
-        // Saída no console
+        // Saída no console (mantido igual)
         System.out.println("\nResultados:");
         System.out.println("Tempo (s)\tT_Exp (°C)\tT_Modelo (°C)");
         for (int i = 0; i < n; i++) {
@@ -79,19 +77,37 @@ public class LumpedCapacitanceAnalysis {
         System.out.printf("\nRMSE: %.4f °C%n", rmse);
         System.out.printf("Coeficiente de Determinação (R²): %.4f%n", r2);
 
-        // Geração de nome de arquivo com base na data
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-        String fileName = "saida_" + LocalDateTime.now().format(formatter) + ".csv";
+        // Geração dos arquivos CSV
+        String dataFile = "data.csv";
+        String rmseFile = "rmse.csv";
+        String r2File = "r2.csv";
 
-        // Exporta apenas os dados para CSV
-        try (FileWriter writer = new FileWriter(fileName)) {
-            writer.write("Tempo (s),Temperatura Experimental (°C),Temperatura Modelo (°C)\n");
+        try {
+            // Arquivo com dados de temperatura
+            FileWriter dataWriter = new FileWriter(dataFile);
+            dataWriter.write("Tempo (s),Temperatura Experimental (°C),Temperatura Modelo (°C)\n");
             for (int i = 0; i < n; i++) {
-                writer.write(String.format("%.2f,%.2f,%.2f\n", t[i], T_exp[i], T_teo[i]));
+                dataWriter.write(String.format(Locale.US, "%.2f,%.2f,%.2f\n", t[i], T_exp[i], T_teo[i]));
             }
-            System.out.println("\nArquivo '" + fileName + "' salvo com sucesso!");
+            dataWriter.close();
+            System.out.println("\nArquivo '" + dataFile + "' gerado com sucesso!");
+
+            // Arquivo com RMSE
+            FileWriter rmseWriter = new FileWriter(rmseFile);
+            rmseWriter.write("Metrica,Valor\n");
+            rmseWriter.write(String.format(Locale.US, "RMSE,%.4f\n", rmse));
+            rmseWriter.close();
+            System.out.println("Arquivo '" + rmseFile + "' gerado com sucesso!");
+
+            // Arquivo com R²
+            FileWriter r2Writer = new FileWriter(r2File);
+            r2Writer.write("Metrica,Valor\n");
+            r2Writer.write(String.format(Locale.US, "R2,%.4f\n", r2));
+            r2Writer.close();
+            System.out.println("Arquivo '" + r2File + "' gerado com sucesso!");
+
         } catch (IOException e) {
-            System.err.println("Erro ao salvar o arquivo CSV: " + e.getMessage());
+            System.err.println("Erro ao gerar arquivos: " + e.getMessage());
         }
 
         sc.close();
